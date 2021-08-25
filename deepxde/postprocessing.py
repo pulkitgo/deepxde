@@ -18,6 +18,7 @@ def saveplot(
     train_fname="train.dat",
     test_fname="test.dat",
     output_dir=None,
+    plot_name='plot.png'
 ):
     """Save/plot the best trained result and loss history.
 
@@ -41,12 +42,12 @@ def saveplot(
         save_best_state(train_state, train_fname, test_fname)
 
     if isplot:
-        plot_loss_history(loss_history)
+        plot_loss_history(loss_history, plot_name)
         plot_best_state(train_state)
 #         plt.show()
 
 
-def plot_loss_history(loss_history, fname='plot.png'):
+def plot_loss_history(loss_history, fname):
     """Plot the training and testing loss history.
 
     Note:
