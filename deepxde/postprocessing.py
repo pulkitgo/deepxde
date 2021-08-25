@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-
+import os
 
 def saveplot(
     loss_history,
@@ -74,7 +74,7 @@ def plot_loss_history(loss_history, fname='plot.png'):
     plt.legend()
 
     if isinstance(fname, str):
-        plt.savefig(fname)
+        plt.savefig(os.path.join(output_dir, fname))
 
 
 def save_loss_history(loss_history, fname):
