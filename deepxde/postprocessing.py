@@ -42,6 +42,7 @@ def saveplot(
         save_best_state(train_state, train_fname, test_fname)
 
     if isplot:
+        plot_name = os.path.join(output_dir, plot_name)
         plot_loss_history(loss_history, plot_name)
         plot_best_state(train_state)
 #         plt.show()
@@ -75,7 +76,7 @@ def plot_loss_history(loss_history, fname):
     plt.legend()
 
     if isinstance(fname, str):
-        plt.savefig(os.path.join(output_dir, fname))
+        plt.savefig(fname)
 
 
 def save_loss_history(loss_history, fname):
