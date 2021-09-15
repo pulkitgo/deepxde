@@ -35,7 +35,7 @@ class Triple(Data):
         if batch_size is None:
             return self.train_x, self.train_y
         indices = self.train_sampler.get_next(batch_size)
-        print(f"Triple Dataset indices {indices}")
+#         print(f"Triple Dataset indices {indices}")
         return (
             (self.train_x[0][indices], self.train_x[1][indices]),
             self.train_y[indices],
