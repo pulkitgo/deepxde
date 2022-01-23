@@ -57,6 +57,8 @@ class DeepONet(NN):
         if isinstance(activation, dict):
             self.activation_branch = activations.get(activation["branch"])
             self.activation_trunk = activations.get(activation["trunk"])
+        elif activation == 'abs':
+            self.activation_branch = self.activation_trunk = activation
         else:
             self.activation_branch = self.activation_trunk = activations.get(activation)
         self.kernel_initializer = initializers.get(kernel_initializer)
@@ -130,36 +132,83 @@ class DeepONet(NN):
             )
         else:
             # Unstacked fully connected network
-            for i in range(1, len(self.layer_size_func) - 1):
+            if self.activation_branch == 'abs':
+                for i in range(1, len(self.layer_size_func) - 1):
+                    y_func = self._dense(
+                        y_func,
+                        self.layer_size_func[i],
+                        regularizer=self.regularizer,
+                        trainable=self.trainable_branch,
+                    )
+                    y_func = tf.abs(y_func)
                 y_func = self._dense(
                     y_func,
-                    self.layer_size_func[i],
-                    activation=self.activation_branch,
+                    self.layer_size_func[-1],
+                    use_bias=self.use_bias,
+                    regularizer=self.regularizer,
+                    trainable=self.trainable_branch,
+                )    
+            
+            else:
+                for i in range(1, len(self.layer_size_func) - 1):
+                    y_func = self._dense(
+                        y_func,
+                        self.layer_size_func[i],
+                        activation=self.activation_branch,
+                        regularizer=self.regularizer,
+                        trainable=self.trainable_branch,
+                    )
+                y_func = self._dense(
+                    y_func,
+                    self.layer_size_func[-1],
+                    use_bias=self.use_bias,
                     regularizer=self.regularizer,
                     trainable=self.trainable_branch,
                 )
-            y_func = self._dense(
-                y_func,
-                self.layer_size_func[-1],
-                use_bias=self.use_bias,
-                regularizer=self.regularizer,
-                trainable=self.trainable_branch,
-            )
 
         # Trunk net to encode the domain of the output function
         y_loc = self.X_loc
-        if self._input_transform is not None:
-            y_loc = self._input_transform(y_loc)
-        for i in range(1, len(self.layer_size_loc)):
+        # if self._input_transform is not None:
+        #     y_loc = self._input_transform(y_loc)
+
+        if self.activation_trunk == 'abs':
+            for i in range(1, len(self.layer_size_loc)-1):
+                y_loc = self._dense(
+                    y_loc,
+                    self.layer_size_loc[i],
+                    regularizer=self.regularizer,
+                    trainable=self.trainable_trunk[i - 1]
+                    if isinstance(self.trainable_trunk, (list, tuple))
+                    else self.trainable_trunk,
+                )
+                y_loc = tf.abs(y_loc)
             y_loc = self._dense(
-                y_loc,
-                self.layer_size_loc[i],
-                activation=self.activation_trunk,
-                regularizer=self.regularizer,
-                trainable=self.trainable_trunk[i - 1]
-                if isinstance(self.trainable_trunk, (list, tuple))
-                else self.trainable_trunk,
-            )
+                    y_loc,
+                    self.layer_size_loc[-1],
+                    regularizer=self.regularizer,
+                    trainable=self.trainable_trunk[-1]
+                    if isinstance(self.trainable_trunk, (list, tuple))
+                    else self.trainable_trunk,
+                )
+        else:
+            for i in range(1, len(self.layer_size_loc)-1):
+                y_loc = self._dense(
+                    y_loc,
+                    self.layer_size_loc[i],
+                    activation=self.activation_trunk,
+                    regularizer=self.regularizer,
+                    trainable=self.trainable_trunk[i - 1]
+                    if isinstance(self.trainable_trunk, (list, tuple))
+                    else self.trainable_trunk,
+                )
+            y_loc = self._dense(
+                    y_loc,
+                    self.layer_size_loc[-1],
+                    regularizer=self.regularizer,
+                    trainable=self.trainable_trunk[-1]
+                    if isinstance(self.trainable_trunk, (list, tuple))
+                    else self.trainable_trunk,
+                )
 
         # Dot product
         if y_func.shape[-1] != y_loc.shape[-1]:
@@ -173,8 +222,8 @@ class DeepONet(NN):
             b = tf.Variable(tf.zeros(1))
             self.y += b
 
-        if self._output_transform is not None:
-            self.y = self._output_transform(self._inputs, self.y)
+        # if self._output_transform is not None:
+        #     self.y = self._output_transform(self._inputs, self.y)
 
         self.target = tf.placeholder(config.real(tf), [None, 1])
         self.built = True
