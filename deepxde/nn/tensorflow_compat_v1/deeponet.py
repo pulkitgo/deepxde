@@ -137,6 +137,7 @@ class DeepONet(NN):
                     y_func = self._dense(
                         y_func,
                         self.layer_size_func[i],
+                        use_bias=self.use_bias,
                         regularizer=self.regularizer,
                         trainable=self.trainable_branch,
                     )
@@ -154,6 +155,7 @@ class DeepONet(NN):
                     y_func = self._dense(
                         y_func,
                         self.layer_size_func[i],
+                        use_bias=self.use_bias,
                         activation=self.activation_branch,
                         regularizer=self.regularizer,
                         trainable=self.trainable_branch,
@@ -195,6 +197,7 @@ class DeepONet(NN):
                 y_loc = self._dense(
                     y_loc,
                     self.layer_size_loc[i],
+                    use_bias=self.use_bias,
                     activation=self.activation_trunk,
                     regularizer=self.regularizer,
                     trainable=self.trainable_trunk[i - 1]
@@ -204,6 +207,7 @@ class DeepONet(NN):
             y_loc = self._dense(
                     y_loc,
                     self.layer_size_loc[-1],
+                    use_bias=self.use_bias,
                     regularizer=self.regularizer,
                     trainable=self.trainable_trunk[-1]
                     if isinstance(self.trainable_trunk, (list, tuple))
@@ -233,7 +237,7 @@ class DeepONet(NN):
         inputs,
         units,
         activation=None,
-        use_bias=True,
+        use_bias=False,
         regularizer=None,
         trainable=True,
     ):
